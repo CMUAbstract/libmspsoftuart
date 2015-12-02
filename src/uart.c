@@ -32,7 +32,6 @@
  ******************************************************************************/
 
 #include <msp430.h>
-#include <legacymsp430.h>
 #include <stdbool.h>
 
 #include "uart.h"
@@ -120,19 +119,19 @@ void uart_putc(uint8_t c)
 
      while(isReceiving); 					// Wait for RX completion
 
-     CCTL0 = OUT; 							// TXD Idle as Mark
-     TACTL = TASSEL_2 + MC_2; 				// SMCLK, continuous mode
+     TA0CCTL0 = OUT; 							// TXD Idle as Mark
+     TA0CTL = TASSEL_2 + MC_2; 				// SMCLK, continuous mode
 
      bitCount = 0xA; 						// Load Bit counter, 8 bits + ST/SP
-     CCR0 = TAR; 							// Initialize compare register
+     TA0CCR0 = TA0R; 							// Initialize compare register
 
-     CCR0 += BIT_TIME; 						// Set time till first bit
+     TA0CCR0 += BIT_TIME; 						// Set time till first bit
      TXByte |= 0x100; 						// Add stop bit to TXByte (which is logical 1)
      TXByte = TXByte << 1; 					// Add start bit (which is logical 0)
 
-     CCTL0 = CCIS_0 + OUTMOD_0 + CCIE + OUT; // Set signal, intial value, enable interrupts
+     TA0CCTL0 = CCIS_0 + OUTMOD_0 + CCIE + OUT; // Set signal, intial value, enable interrupts
 
-     while ( CCTL0 & CCIE ); 				// Wait for previous TX completion
+     while ( TA0CCTL0 & CCIE ); 				// Wait for previous TX completion
 }
 
 void uart_puts(const char *str)
@@ -144,17 +143,18 @@ void uart_puts(const char *str)
 /**
  * ISR for RXD
  */
-interrupt(PORT1_VECTOR) PORT1_ISR(void)
+void __attribute__ ((interrupt(PORT1_VECTOR)))
+PORT1_ISR(void)
 {
      isReceiving = true;
 
      P1IE &= ~RXD; 					// Disable RXD interrupt
      P1IFG &= ~RXD; 					// Clear RXD IFG (interrupt flag)
 
-     TACTL = TASSEL_2 + MC_2; 		// SMCLK, continuous mode
-     CCR0 = TAR; 					// Initialize compare register
-     CCR0 += HALF_BIT_TIME; 			// Set time till first bit
-     CCTL0 = OUTMOD_1 + CCIE; 		// Disable TX and enable interrupts
+     TA0CTL = TASSEL_2 + MC_2; 		// SMCLK, continuous mode
+     TA0CCR0 = TA0R; 					// Initialize compare register
+     TA0CCR0 += HALF_BIT_TIME; 			// Set time till first bit
+     TA0CCTL0 = OUTMOD_1 + CCIE; 		// Disable TX and enable interrupts
 
      RXByte = 0; 					// Initialize RXByte
      bitCount = 9; 					// Load Bit counter, 8 bits + start bit
@@ -163,30 +163,31 @@ interrupt(PORT1_VECTOR) PORT1_ISR(void)
 /**
  * ISR for TXD and RXD
  */
-interrupt(TIMERA0_VECTOR) TIMERA0_ISR(void)
+void __attribute__ ((interrupt(TIMER0_A0_VECTOR)))
+TIMERA0_ISR(void)
 {
      if(!isReceiving) {
-          CCR0 += BIT_TIME; 						// Add Offset to CCR0
+          TA0CCR0 += BIT_TIME; 						// Add Offset to CCR0
           if ( bitCount == 0) { 					// If all bits TXed
-               TACTL = TASSEL_2; 					// SMCLK, timer off (for power consumption)
-               CCTL0 &= ~ CCIE ; 					// Disable interrupt
+               TA0CTL = TASSEL_2; 					// SMCLK, timer off (for power consumption)
+               TA0CCTL0 &= ~ CCIE ; 					// Disable interrupt
           } else {
                if (TXByte & 0x01) {
-                    CCTL0 = ((CCTL0 & ~OUTMOD_7 ) | OUTMOD_1);  //OUTMOD_7 defines the 'window' of the field.
+                    TA0CCTL0 = ((TA0CCTL0 & ~OUTMOD_7 ) | OUTMOD_1);  //OUTMOD_7 defines the 'window' of the field.
                } else {
-                    CCTL0 = ((CCTL0 & ~OUTMOD_7 ) | OUTMOD_5);  //OUTMOD_7 defines the 'window' of the field.
+                    TA0CCTL0 = ((TA0CCTL0 & ~OUTMOD_7 ) | OUTMOD_5);  //OUTMOD_7 defines the 'window' of the field.
                }
 
                TXByte = TXByte >> 1;
                bitCount --;
           }
      } else {
-          CCR0 += BIT_TIME; 						// Add Offset to CCR0
+          TA0CCR0 += BIT_TIME; 						// Add Offset to CCR0
 
           if ( bitCount == 0) {
 
-               TACTL = TASSEL_2; 					// SMCLK, timer off (for power consumption)
-               CCTL0 &= ~ CCIE ; 					// Disable interrupt
+               TA0CTL = TASSEL_2; 					// SMCLK, timer off (for power consumption)
+               TA0CCTL0 &= ~ CCIE ; 					// Disable interrupt
 
                isReceiving = false;
 
