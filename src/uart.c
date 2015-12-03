@@ -139,7 +139,6 @@ int putchar(int ch)
 
 int puts(const char *str)
 {
-     if(*str != 0) putchar(*str++);
      while(*str != 0) putchar(*str++);
      putchar('\n'); // semantics of puts say it appends a newline
      return 0;
