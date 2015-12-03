@@ -91,7 +91,7 @@ static volatile bool isReceiving = false;
  */
 static volatile bool hasReceived = false;
 
-void uart_init(void)
+void printf_init(void)
 {
      P1SEL |= TXD;
      P1DIR |= TXD;
@@ -101,20 +101,21 @@ void uart_init(void)
      P1IE  |= RXD; 		// Enable RXD interrupt
 }
 
-bool uart_getc(uint8_t *c)
+int getchar(void)
 {
-     if (!hasReceived) {
-          return false;
-     }
+     int ch;
+     while (!hasReceived);
 
-     *c = RXByte;
+     ch = RXByte;
      hasReceived = false;
 
-     return true;
+     return ch;
 }
 
-void uart_putc(uint8_t c)
+int putchar(int ch)
 {
+     uint8_t c = ch;
+
      TXByte = c;
 
      while(isReceiving); 					// Wait for RX completion
@@ -132,12 +133,16 @@ void uart_putc(uint8_t c)
      TA0CCTL0 = CCIS_0 + OUTMOD_0 + CCIE + OUT; // Set signal, intial value, enable interrupts
 
      while ( TA0CCTL0 & CCIE ); 				// Wait for previous TX completion
+
+     return ch;
 }
 
-void uart_puts(const char *str)
+int puts(const char *str)
 {
-     if(*str != 0) uart_putc(*str++);
-     while(*str != 0) uart_putc(*str++);
+     if(*str != 0) putchar(*str++);
+     while(*str != 0) putchar(*str++);
+     putchar('\n'); // semantics of puts say it appends a newline
+     return 0;
 }
 
 /**

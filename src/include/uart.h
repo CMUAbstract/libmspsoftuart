@@ -38,31 +38,9 @@
 #include <stdint.h>
 
 /**
- * Initialize soft UART
+ * Initialize soft UART backend for printf
  */
-void uart_init(void);
-
-/**
- * Read one character from UART non-blocking.
- *
- * @param[out]	*c	character received (if one was available)
- * @return			true if character received, false otherwise
- */
-bool uart_getc(uint8_t *c);
-
-/**
- * Write one chracter to the UART blocking.
- *
- * @param[in]	*c	the character to write
- */
-void uart_putc(uint8_t c);
-
-/**
- * Write string to the UART blocking.
- *
- * @param[in]	*str	the 0 terminated string to write
- */
-void uart_puts(const char *str);
+void printf_init(void);
 
 #endif
 
