@@ -49,12 +49,12 @@
 /**
  * CPU freq.
  */
-#define FCPU 			1000000
+#define FCPU 			8192000
 
 /**
  * Baudrate
  */
-#define BAUDRATE 		9600
+#define BAUDRATE 		115200
 
 /**
  * Bit time
