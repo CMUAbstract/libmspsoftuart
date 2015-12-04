@@ -34,7 +34,7 @@
 #include <msp430.h>
 #include <stdbool.h>
 
-#include "uart.h"
+#include "printf.h"
 
 /**
  * TXD on P1.1
