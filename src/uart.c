@@ -37,12 +37,12 @@
 #include "printf.h"
 
 /**
- * TXD on P1.1
+ * TXD pin
  */
 #define TXD BIT1
 
 /**
- * RXD on P1.2
+ * RXD pin
  */
 #define RXD BIT2
 
