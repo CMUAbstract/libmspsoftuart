@@ -36,6 +36,8 @@
 
 #include "printf.h"
 
+// #define CONFIG_RX
+
 /**
  * TXD pin
  */
@@ -96,9 +98,11 @@ void printf_init(void)
      P3SEL |= TXD;
      P3DIR |= TXD;
 
+#if CONFIG_RX
      P3IES |= RXD; 		// RXD Hi/lo edge interrupt
      P3IFG &= ~RXD; 		// Clear RXD (flag) before enabling interrupt
      P3IE  |= RXD; 		// Enable RXD interrupt
+#endif
 }
 
 int getchar(void)
@@ -144,6 +148,7 @@ int puts(const char *str)
      return 0;
 }
 
+#ifdef CONFIG_RX
 /**
  * ISR for RXD
  */
@@ -163,6 +168,7 @@ PORT3_ISR(void)
      RXByte = 0; 					// Initialize RXByte
      bitCount = 9; 					// Load Bit counter, 8 bits + start bit
 }
+#endif // CONFIG_RX
 
 /**
  * ISR for TXD and RXD
@@ -186,6 +192,7 @@ TIMERA0_ISR(void)
                bitCount --;
           }
      } else {
+#ifdef CONFIG_RX
           TA0CCR0 += BIT_TIME; 						// Add Offset to CCR0
 
           if ( bitCount == 0) {
@@ -210,6 +217,7 @@ TIMERA0_ISR(void)
                RXByte = RXByte >> 1; 				// Shift the bits down
                bitCount --;
           }
+#endif // CONFIG_RX
      }
 }
 
