@@ -148,6 +148,12 @@ int puts(const char *str)
      return 0;
 }
 
+int puts_no_newline(const char *str)
+{
+     while(*str != 0) putchar(*str++);
+     return 0;
+}
+
 #ifdef CONFIG_RX
 /**
  * ISR for RXD
