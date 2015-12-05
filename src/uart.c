@@ -93,12 +93,12 @@ static volatile bool hasReceived = false;
 
 void printf_init(void)
 {
-     P1SEL |= TXD;
-     P1DIR |= TXD;
+     P3SEL |= TXD;
+     P3DIR |= TXD;
 
-     P1IES |= RXD; 		// RXD Hi/lo edge interrupt
-     P1IFG &= ~RXD; 		// Clear RXD (flag) before enabling interrupt
-     P1IE  |= RXD; 		// Enable RXD interrupt
+     P3IES |= RXD; 		// RXD Hi/lo edge interrupt
+     P3IFG &= ~RXD; 		// Clear RXD (flag) before enabling interrupt
+     P3IE  |= RXD; 		// Enable RXD interrupt
 }
 
 int getchar(void)
@@ -147,13 +147,13 @@ int puts(const char *str)
 /**
  * ISR for RXD
  */
-void __attribute__ ((interrupt(PORT1_VECTOR)))
-PORT1_ISR(void)
+void __attribute__ ((interrupt(PORT3_VECTOR)))
+PORT3_ISR(void)
 {
      isReceiving = true;
 
-     P1IE &= ~RXD; 					// Disable RXD interrupt
-     P1IFG &= ~RXD; 					// Clear RXD IFG (interrupt flag)
+     P3IE &= ~RXD; 					// Disable RXD interrupt
+     P3FG &= ~RXD; 					// Clear RXD IFG (interrupt flag)
 
      TA0CTL = TASSEL_2 + MC_2; 		// SMCLK, continuous mode
      TA0CCR0 = TA0R; 					// Initialize compare register
@@ -195,8 +195,8 @@ TIMERA0_ISR(void)
 
                isReceiving = false;
 
-               P1IFG &= ~RXD; 						// clear RXD IFG (interrupt flag)
-               P1IE |= RXD; 						// enabled RXD interrupt
+               P3IFG &= ~RXD; 						// clear RXD IFG (interrupt flag)
+               P3IE |= RXD; 						// enabled RXD interrupt
 
                if ( (RXByte & 0x201) == 0x200) { 	// Validate the start and stop bits are correct
                     RXByte = RXByte >> 1; 			// Remove start bit
@@ -204,7 +204,7 @@ TIMERA0_ISR(void)
                     hasReceived = true;
                }
           } else {
-               if ( (P1IN & RXD) == RXD) { 		// If bit is set?
+               if ( (P3IN & RXD) == RXD) { 		// If bit is set?
                     RXByte |= 0x400; 				// Set the value in the RXByte
                }
                RXByte = RXByte >> 1; 				// Shift the bits down
