@@ -119,37 +119,37 @@ void printf_init(void)
 
 int getchar(void)
 {
-     int ch;
-     while (!hasReceived);
+    int ch;
+    while (!hasReceived);
 
-     ch = RXByte;
-     hasReceived = false;
+    ch = RXByte;
+    hasReceived = false;
 
-     return ch;
+    return ch;
 }
 
 int putchar(int ch)
 {
-     uint8_t c = ch;
+    uint8_t c = ch;
 
-     TXByte = c;
+    TXByte = c;
 
-     while(isReceiving); 					// Wait for RX completion
+    while(isReceiving); 					// Wait for RX completion
 
     TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) = TAOUT; // TXD Idle as Mark
     TIMER(TIMER_UART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
 
-     bitCount = 0xA; 						// Load Bit counter, 8 bits + ST/SP
+    bitCount = 0xA; 						// Load Bit counter, 8 bits + ST/SP
 
-     
+
     // Initialize compare register
     TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) = TIMER(TIMER_UART, R);
 
     // Set time till first bit
     TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; 
 
-     TXByte |= 0x100; 						// Add stop bit to TXByte (which is logical 1)
-     TXByte = TXByte << 1; 					// Add start bit (which is logical 0)
+    TXByte |= 0x100; 						// Add stop bit to TXByte (which is logical 1)
+    TXByte = TXByte << 1; 					// Add start bit (which is logical 0)
 
     // Set signal, intial value, enable interrupts
     TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) = CCIS_0 + OUTMOD_0 + CCIE + TAOUT; 
@@ -157,30 +157,30 @@ int putchar(int ch)
     // Wait for previous TX completion
     while ( TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & CCIE );
 
-     return ch;
+    return ch;
 }
 
 int puts(const char *str)
 {
-     while(*str != 0) putchar(*str++);
-     putchar('\n'); // semantics of puts say it appends a newline
-     return 0;
+    while(*str != 0) putchar(*str++);
+    putchar('\n'); // semantics of puts say it appends a newline
+    return 0;
 }
 
 int puts_no_newline(const char *str)
 {
-     while(*str != 0) putchar(*str++);
-     return 0;
+    while(*str != 0) putchar(*str++);
+    return 0;
 }
 
 #ifdef CONFIG_RX
 /**
  * ISR for RXD
  */
-void __attribute__ ((interrupt(PORT3_VECTOR)))
+    void __attribute__ ((interrupt(PORT3_VECTOR)))
 PORT3_ISR(void)
 {
-     isReceiving = true;
+    isReceiving = true;
 
     GPIO(PORT_RXD, IE) &= ~BIT(PIN_RXD); // Disable RXD interrupt
     GPIO(PORT_RXD, IFG) &= ~BIT(PIN_RXD); // Disable RXD interrupt
@@ -196,66 +196,66 @@ PORT3_ISR(void)
     // Disable TX and enable interrupts
     TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) = OUTMOD_1 + CCIE;
 
-     RXByte = 0; 					// Initialize RXByte
-     bitCount = 9; 					// Load Bit counter, 8 bits + start bit
+    RXByte = 0; 					// Initialize RXByte
+    bitCount = 9; 					// Load Bit counter, 8 bits + start bit
 }
 #endif // CONFIG_RX
 
 /**
  * ISR for TXD and RXD
  */
-void __attribute__ ((interrupt(TIMER0_A0_VECTOR)))
+    void __attribute__ ((interrupt(TIMER0_A0_VECTOR)))
 TIMERA0_ISR(void)
 {
-     if(!isReceiving) {
+    if(!isReceiving) {
         TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
-          if ( bitCount == 0) { 					// If all bits TXed
+        if ( bitCount == 0) { 					// If all bits TXed
             TIMER(TIMER_UART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
             TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) &= ~CCIE; // Disable interrupt
-          } else {
-               if (TXByte & 0x01) {
-                    //OUTMOD_7 defines the 'window' of the field.
-                    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) =
-                        (TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & ~OUTMOD_7 ) |
-                        OUTMOD_1;
-               } else {
-                    //OUTMOD_7 defines the 'window' of the field.
-                    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) =
-                        (TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & ~OUTMOD_7 ) |
-                        OUTMOD_5;
-               }
+        } else {
+            if (TXByte & 0x01) {
+                //OUTMOD_7 defines the 'window' of the field.
+                TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) =
+                    (TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & ~OUTMOD_7 ) |
+                    OUTMOD_1;
+            } else {
+                //OUTMOD_7 defines the 'window' of the field.
+                TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) =
+                    (TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & ~OUTMOD_7 ) |
+                    OUTMOD_5;
+            }
 
-               TXByte = TXByte >> 1;
-               bitCount --;
-          }
-     } else {
+            TXByte = TXByte >> 1;
+            bitCount --;
+        }
+    } else {
 #ifdef CONFIG_RX
         TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
 
-          if ( bitCount == 0) {
+        if ( bitCount == 0) {
 
             TIMER(TIMER_UART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
             TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) &= ~CCIE; // Disable interrupt
 
-               isReceiving = false;
+            isReceiving = false;
 
             GPIO(PORT_RXD, IFG) &= ~BIT(PIN_RXD); // clear RXD IFG (interrupt flag)
             GPIO(PORT_RXD, IE) |= BIT(PIN_RXD); // enabled RXD interrupt
 
-               if ( (RXByte & 0x201) == 0x200) { 	// Validate the start and stop bits are correct
-                    RXByte = RXByte >> 1; 			// Remove start bit
-                    RXByte &= 0xFF; 				// Remove stop bit
-                    hasReceived = true;
-               }
-          } else {
- 		       // If bit is set?
-               if ( (GPIO(PORT_RXD, IN) & BIT(PIN_RXD)) == BIT(PIN_RXD)) {
-                    RXByte |= 0x400; 				// Set the value in the RXByte
-               }
-               RXByte = RXByte >> 1; 				// Shift the bits down
-               bitCount --;
-          }
+            if ( (RXByte & 0x201) == 0x200) { 	// Validate the start and stop bits are correct
+                RXByte = RXByte >> 1; 			// Remove start bit
+                RXByte &= 0xFF; 				// Remove stop bit
+                hasReceived = true;
+            }
+        } else {
+            // If bit is set?
+            if ( (GPIO(PORT_RXD, IN) & BIT(PIN_RXD)) == BIT(PIN_RXD)) {
+                RXByte |= 0x400; 				// Set the value in the RXByte
+            }
+            RXByte = RXByte >> 1; 				// Shift the bits down
+            bitCount --;
+        }
 #endif // CONFIG_RX
-     }
+    }
 }
 
