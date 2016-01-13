@@ -36,6 +36,7 @@
 
 #include <libmsp/periph.h>
 
+#include "pins.h"
 #include "config.h"
 #include "printf.h"
 
@@ -78,13 +79,13 @@ int x = TAOUT;
 
 void printf_init(void)
 {
-    GPIO(PORT_TXD, SEL) |= BIT(PIN_TXD);
-    GPIO(PORT_TXD, DIR) |= BIT(PIN_TXD);
+    GPIO(PORT_SOFTUART_TXD, SEL) |= BIT(PIN_SOFTUART_TXD);
+    GPIO(PORT_SOFTUART_TXD, DIR) |= BIT(PIN_SOFTUART_TXD);
 
 #ifdef CONFIG_RX
-    GPIO(PORT_RXD, IES) |= BIT(PIN_RXD); // RXD Hi/lo edge interrupt
-    GPIO(PORT_RXD, IFG) &= ~BIT(PIN_RXD); // Clear flag before enabling interrupt
-    GPIO(PORT_RXD, IE) |= BIT(PIN_RXD); // Enable RXD interrupt
+    GPIO(PORT_SOFTUART_RXD, IES) |= BIT(PIN_SOFTUART_RXD); // RXD Hi/lo edge interrupt
+    GPIO(PORT_SOFTUART_RXD, IFG) &= ~BIT(PIN_SOFTUART_RXD); // Clear flag before enabling interrupt
+    GPIO(PORT_SOFTUART_RXD, IE) |= BIT(PIN_SOFTUART_RXD); // Enable RXD interrupt
 #endif
 }
 
@@ -107,26 +108,26 @@ int putchar(int ch)
 
     while(isReceiving); 					// Wait for RX completion
 
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) = TAOUT; // TXD Idle as Mark
-    TIMER(TIMER_UART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = TAOUT; // TXD Idle as Mark
+    TIMER(TIMER_SOFTUART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
 
     bitCount = 0xA; 						// Load Bit counter, 8 bits + ST/SP
 
 
     // Initialize compare register
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) = TIMER(TIMER_UART, R);
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) = TIMER(TIMER_SOFTUART, R);
 
     // Set time till first bit
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; 
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += BIT_TIME; 
 
     TXByte |= 0x100; 						// Add stop bit to TXByte (which is logical 1)
     TXByte = TXByte << 1; 					// Add start bit (which is logical 0)
 
     // Set signal, intial value, enable interrupts
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) = CCIS_0 + OUTMOD_0 + CCIE + TAOUT; 
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = CCIS_0 + OUTMOD_0 + CCIE + TAOUT; 
 
     // Wait for previous TX completion
-    while ( TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & CCIE );
+    while ( TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) & CCIE );
 
     return ch;
 }
@@ -149,27 +150,27 @@ int puts_no_newline(const char *str)
  * ISR for RXD
  */
 #ifdef CONFIG_ISR_RX
-__attribute__ ((interrupt(GPIO_VECTOR(PORT_RXD))))
-void GPIO_ISR(PORT_RXD)(void)
+__attribute__ ((interrupt(GPIO_VECTOR(PORT_SOFTUART_RXD))))
+void GPIO_ISR(PORT_SOFTUART_RXD)(void)
 #else // !CONFIG_ISR_RX
 void softuart_rx_isr(void)
 #endif // !CONFIG_ISR_RX
 {
     isReceiving = true;
 
-    GPIO(PORT_RXD, IE) &= ~BIT(PIN_RXD); // Disable RXD interrupt
-    GPIO(PORT_RXD, IFG) &= ~BIT(PIN_RXD); // Disable RXD interrupt
+    GPIO(PORT_SOFTUART_RXD, IE) &= ~BIT(PIN_SOFTUART_RXD); // Disable RXD interrupt
+    GPIO(PORT_SOFTUART_RXD, IFG) &= ~BIT(PIN_SOFTUART_RXD); // Disable RXD interrupt
 
-    TIMER(TIMER_UART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
+    TIMER(TIMER_SOFTUART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
 
     // Initialize compare register
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) = TIMER(TIMER_UART, R);
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) = TIMER(TIMER_SOFTUART, R);
 
     // Set time till first bit
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += HALF_BIT_TIME; 
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += HALF_BIT_TIME; 
 
     // Disable TX and enable interrupts
-    TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) = OUTMOD_1 + CCIE;
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = OUTMOD_1 + CCIE;
 
     RXByte = 0; 					// Initialize RXByte
     bitCount = 9; 					// Load Bit counter, 8 bits + start bit
@@ -180,27 +181,27 @@ void softuart_rx_isr(void)
  * ISR for TXD and RXD
  */
 #ifdef CONFIG_ISR_TIMER
-__attribute__ ((interrupt(TIMER_VECTOR(TIMER_UART_TYPE, TIMER_UART_IDX, 0))))
-void TIMER_ISR(TIMER_UART)(void)
+__attribute__ ((interrupt(TIMER_VECTOR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, 0))))
+void TIMER_ISR(TIMER_SOFTUART)(void)
 #else // !CONFIG_ISR_TIMER
 void softuart_timer_isr(void)
 #endif // !CONFIG_ISR_TIMER
 {
     if(!isReceiving) {
-        TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
+        TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
         if ( bitCount == 0) { 					// If all bits TXed
-            TIMER(TIMER_UART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
-            TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) &= ~CCIE; // Disable interrupt
+            TIMER(TIMER_SOFTUART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
+            TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) &= ~CCIE; // Disable interrupt
         } else {
             if (TXByte & 0x01) {
                 //OUTMOD_7 defines the 'window' of the field.
-                TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) =
-                    (TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & ~OUTMOD_7 ) |
+                TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) =
+                    (TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) & ~OUTMOD_7 ) |
                     OUTMOD_1;
             } else {
                 //OUTMOD_7 defines the 'window' of the field.
-                TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) =
-                    (TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) & ~OUTMOD_7 ) |
+                TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) =
+                    (TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) & ~OUTMOD_7 ) |
                     OUTMOD_5;
             }
 
@@ -209,17 +210,17 @@ void softuart_timer_isr(void)
         }
     } else {
 #ifdef CONFIG_RX
-        TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
+        TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
 
         if ( bitCount == 0) {
 
-            TIMER(TIMER_UART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
-            TIMER_CC(TIMER_UART, TIMER_UART_CC, CCTL) &= ~CCIE; // Disable interrupt
+            TIMER(TIMER_SOFTUART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
+            TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) &= ~CCIE; // Disable interrupt
 
             isReceiving = false;
 
-            GPIO(PORT_RXD, IFG) &= ~BIT(PIN_RXD); // clear RXD IFG (interrupt flag)
-            GPIO(PORT_RXD, IE) |= BIT(PIN_RXD); // enabled RXD interrupt
+            GPIO(PORT_SOFTUART_RXD, IFG) &= ~BIT(PIN_SOFTUART_RXD); // clear RXD IFG (interrupt flag)
+            GPIO(PORT_SOFTUART_RXD, IE) |= BIT(PIN_SOFTUART_RXD); // enabled RXD interrupt
 
             if ( (RXByte & 0x201) == 0x200) { 	// Validate the start and stop bits are correct
                 RXByte = RXByte >> 1; 			// Remove start bit
@@ -228,7 +229,7 @@ void softuart_timer_isr(void)
             }
         } else {
             // If bit is set?
-            if ( (GPIO(PORT_RXD, IN) & BIT(PIN_RXD)) == BIT(PIN_RXD)) {
+            if ( (GPIO(PORT_SOFTUART_RXD, IN) & BIT(PIN_SOFTUART_RXD)) == BIT(PIN_SOFTUART_RXD)) {
                 RXByte |= 0x400; 				// Set the value in the RXByte
             }
             RXByte = RXByte >> 1; 				// Shift the bits down
