@@ -98,7 +98,7 @@ void printf_init(void)
      P3SEL |= TXD;
      P3DIR |= TXD;
 
-#if CONFIG_RX
+#ifdef CONFIG_RX
      P3IES |= RXD; 		// RXD Hi/lo edge interrupt
      P3IFG &= ~RXD; 		// Clear RXD (flag) before enabling interrupt
      P3IE  |= RXD; 		// Enable RXD interrupt
