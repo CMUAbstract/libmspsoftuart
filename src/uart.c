@@ -148,8 +148,8 @@ int puts_no_newline(const char *str)
 /**
  * ISR for RXD
  */
-    void __attribute__ ((interrupt(PORT3_VECTOR)))
-PORT3_ISR(void)
+__attribute__ ((interrupt(GPIO_VECTOR(PORT_RXD))))
+void GPIO_ISR(PORT_RXD)(void)
 {
     isReceiving = true;
 
@@ -175,8 +175,8 @@ PORT3_ISR(void)
 /**
  * ISR for TXD and RXD
  */
-    void __attribute__ ((interrupt(TIMER0_A0_VECTOR)))
-TIMERA0_ISR(void)
+__attribute__ ((interrupt(TIMER_VECTOR(TIMER_UART_TYPE, TIMER_UART_IDX, 0))))
+void TIMER_ISR(TIMER_UART)(void)
 {
     if(!isReceiving) {
         TIMER_CC(TIMER_UART, TIMER_UART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
