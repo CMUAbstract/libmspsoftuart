@@ -18,8 +18,10 @@
 /* The output of this CC register and timer must be routed to TXD pin
  * NOTE: Only timers of Type A are supported.
  **/
-#define TIMER_UART    A0
-#define TIMER_UART_CC 0
+#define TIMER_UART_TYPE A
+#define TIMER_UART_IDX  0
+#define TIMER_UART_CC   0
+#define TIMER_UART CONCAT(TIMER_UART_TYPE, TIMER_UART_IDX)
 
 /* SMCLK freq. */
 #define FCPU 			8192000
