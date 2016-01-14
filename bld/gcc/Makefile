@@ -8,8 +8,8 @@ include $(MAKER_ROOT)/Makefile.gcc
 
 SRC_DIR = ../../src
 
-CFLAGS += \
-	-I$(SRC_DIR)/include/$(LIB) \
-	-I$(LIBMSP_ROOT)/src/include \
+CFLAGS += -I$(SRC_DIR)/include/$(LIB)
+
+$(eval $(call depend,libmsp))
 
 VPATH = $(SRC_DIR)
