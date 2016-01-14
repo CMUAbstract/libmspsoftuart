@@ -35,6 +35,7 @@
 #include <stdbool.h>
 
 #include <libmsp/periph.h>
+#include <libmsp/clock.h>
 
 #include "pins.h"
 #include "config.h"
@@ -43,7 +44,7 @@
 /**
  * Bit time
  */
-#define BIT_TIME        (FCPU / BAUDRATE)
+#define BIT_TIME        (CONFIG_SMCLK_FREQ / CONFIG_SOFTUART_BAUDRATE)
 
 /**
  * Half bit time

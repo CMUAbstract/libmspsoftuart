@@ -13,9 +13,6 @@
 #define CONFIG_ISR_RX
 #define CONFIG_ISR_TIMER
 
-/* SMCLK freq. */
-#define FCPU 			8192000
-
-#define BAUDRATE 		115200
+#define CONFIG_SOFTUART_BAUDRATE 		115200
 
 #endif // LIBMSPSOFTUART_H
