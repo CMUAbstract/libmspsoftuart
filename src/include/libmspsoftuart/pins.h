@@ -5,11 +5,11 @@
  * TXD pin
  * NOTE: must be the output pin of TIMER_SOFTUART_CC register of TIMER_SOFTUART timer
  */
-#define PORT_SOFTUART_TXD 3
+#define PORT_SOFTUART_TXD 1
 #define PIN_SOFTUART_TXD  1
 
 /* RXD pin */
-#define PORT_SOFTUART_RXD 3
+#define PORT_SOFTUART_RXD 1
 #define PIN_SOFTUART_RXD  2
 
 /* The output of this CC register and timer must be routed to TXD pin
