@@ -4,12 +4,10 @@ EXEC = $(LIB).a
 OBJECTS = \
 	uart.o \
 
-include $(MAKER_ROOT)/Makefile.gcc
-
-SRC_DIR = ../../src
-
+DEPS += libmsp
 CFLAGS += -I$(SRC_DIR)/include/$(LIB)
 
-$(eval $(call depend,libmsp))
-
+SRC_DIR = ../../src
 VPATH = $(SRC_DIR)
+
+include $(MAKER_ROOT)/Makefile.gcc
