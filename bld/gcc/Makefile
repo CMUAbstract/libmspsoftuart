@@ -1,13 +1,11 @@
 LIB = libmspsoftuart
-EXEC = $(LIB).a
 
 OBJECTS = \
 	uart.o \
 
-DEPS += libmsp
-CFLAGS += -I$(SRC_DIR)/include/$(LIB)
+override SRC_ROOT = ../../src
 
-SRC_DIR = ../../src
-VPATH = $(SRC_DIR)
+DEPS += libmsp
+CFLAGS += -I$(SRC_ROOT)/include/$(LIB)
 
 include $(MAKER_ROOT)/Makefile.gcc
