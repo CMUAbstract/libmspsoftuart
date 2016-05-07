@@ -40,7 +40,7 @@
 /**
  * Initialize soft UART backend for printf
  */
-void printf_init(void);
+void mspsoftuart_init(void);
 
 #endif
 

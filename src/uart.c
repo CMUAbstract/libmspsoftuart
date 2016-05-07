@@ -78,7 +78,7 @@ static volatile bool hasReceived = false;
 
 int x = TAOUT;
 
-void printf_init(void)
+void mspsoftuart_init(void)
 {
     GPIO(PORT_SOFTUART_TXD, SEL) |= BIT(PIN_SOFTUART_TXD);
     GPIO(PORT_SOFTUART_TXD, DIR) |= BIT(PIN_SOFTUART_TXD);
@@ -90,7 +90,7 @@ void printf_init(void)
 #endif
 }
 
-int getchar(void)
+int io_getchar(void)
 {
     int ch;
     while (!hasReceived);
@@ -101,13 +101,15 @@ int getchar(void)
     return ch;
 }
 
-int putchar(int ch)
+int io_putchar(int ch)
 {
     uint8_t c = ch;
 
     TXByte = c;
 
     while(isReceiving); 					// Wait for RX completion
+
+    P1OUT |= BIT2;
 
     TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = TAOUT; // TXD Idle as Mark
     TIMER(TIMER_SOFTUART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
@@ -133,16 +135,16 @@ int putchar(int ch)
     return ch;
 }
 
-int puts(const char *str)
+int io_puts(const char *str)
 {
-    while(*str != 0) putchar(*str++);
-    putchar('\n'); // semantics of puts say it appends a newline
+    while(*str != 0) io_putchar(*str++);
+    io_putchar('\n'); // semantics of puts say it appends a newline
     return 0;
 }
 
-int puts_no_newline(const char *str)
+int io_puts_no_newline(const char *str)
 {
-    while(*str != 0) putchar(*str++);
+    while(*str != 0) io_putchar(*str++);
     return 0;
 }
 
