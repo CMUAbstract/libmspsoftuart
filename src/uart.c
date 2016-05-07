@@ -187,8 +187,8 @@ void softuart_rx_isr(void)
  * ISR for TXD and RXD
  */
 #ifdef CONFIG_ISR_TIMER
-__attribute__ ((interrupt(TIMER_VECTOR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, 0))))
-void TIMER_ISR(TIMER_SOFTUART)(void)
+__attribute__ ((interrupt(TIMER_VECTOR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC))))
+void TIMER_ISR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC)(void)
 #else // !CONFIG_ISR_TIMER
 void softuart_timer_isr(void)
 #endif // !CONFIG_ISR_TIMER

@@ -14,7 +14,6 @@
 
 /* The output of this CC register and timer must be routed to TXD pin
  * NOTE: Only timers of Type A are supported.
- * NOTE: Only CC=0 is supported (because int vector differs between 0 and 1-7)
  **/
 #define TIMER_SOFTUART_TYPE A
 #define TIMER_SOFTUART_IDX  0
