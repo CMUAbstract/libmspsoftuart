@@ -80,6 +80,9 @@ int x = TAOUT;
 
 void mspsoftuart_init(void)
 {
+    // default to high, for when we turn on the output pin (by setting SEL register)
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = TAOUT;
+
     GPIO(PORT_SOFTUART_TXD, SEL) |= BIT(PIN_SOFTUART_TXD);
     GPIO(PORT_SOFTUART_TXD, DIR) |= BIT(PIN_SOFTUART_TXD);
 
