@@ -3,8 +3,10 @@ LIB = libmspsoftuart
 OBJECTS = \
 	uart.o \
 
-CFLAGS += \
-	-I$(SRC_DIR)/include/$(LIB) \
+DEPS += \
+	libmsp \
 
 override SRC_ROOT = ../../src
 
+override CFLAGS += \
+	-I$(SRC_ROOT)/include/$(LIB) \
