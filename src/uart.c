@@ -77,8 +77,6 @@ static volatile bool isReceiving = false;
  */
 static volatile bool hasReceived = false;
 
-int x = TAOUT;
-
 void mspsoftuart_init(void)
 {
     // default to high, for when we turn on the output pin (by setting SEL register)
