@@ -120,7 +120,8 @@ int io_putchar(int ch)
     P1OUT |= BIT2;
 
     TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = OUT; // TXD Idle as Mark
-    TIMER(TIMER_SOFTUART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
+    // continuous mode
+    TIMER(TIMER_SOFTUART, CTL) = TIMER_CLK_SOURCE_BITS(TIMER_SOFTUART_TYPE, SMCLK) + MC_2;
 
     bitCount = 0xA; 						// Load Bit counter, 8 bits + ST/SP
 
@@ -172,7 +173,8 @@ void softuart_rx_isr(void)
     GPIO(PORT_SOFTUART_RXD, IE) &= ~BIT(PIN_SOFTUART_RXD); // Disable RXD interrupt
     GPIO(PORT_SOFTUART_RXD, IFG) &= ~BIT(PIN_SOFTUART_RXD); // Disable RXD interrupt
 
-    TIMER(TIMER_SOFTUART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
+    // continuous mode
+    TIMER(TIMER_SOFTUART, CTL) = TIMER_CLK_SOURCE_BITS(TIMER_SOFTUART_TYPE, SMCLK) + MC_2;
 
     // Initialize compare register
     TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) = TIMER(TIMER_SOFTUART, R);
@@ -201,7 +203,8 @@ void softuart_timer_isr(void)
     if(!isReceiving) {
         TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
         if ( bitCount == 0) { 					// If all bits TXed
-            TIMER(TIMER_SOFTUART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
+            // timer off (for power consumption)
+            TIMER(TIMER_SOFTUART, CTL) = TIMER_CLK_SOURCE_BITS(TIMER_SOFTUART_TYPE, SMCLK);
             TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) &= ~CCIE; // Disable interrupt
         } else {
             if (TXByte & 0x01) {
@@ -225,7 +228,8 @@ void softuart_timer_isr(void)
 
         if ( bitCount == 0) {
 
-            TIMER(TIMER_SOFTUART, CTL) = TASSEL_2; // SMCLK, timer off (for power consumption)
+            // timer off (for power consumption)
+            TIMER(TIMER_SOFTUART, CTL) = TIMER_CLK_SOURCE_BITS(TIMER_SOFTUART_TYPE, SMCLK);
             TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) &= ~CCIE; // Disable interrupt
 
             isReceiving = false;
