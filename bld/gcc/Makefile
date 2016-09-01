@@ -1,11 +1,2 @@
-LIB = libmspsoftuart
-
-OBJECTS = \
-	uart.o \
-
-override SRC_ROOT = ../../src
-
-DEPS += libmsp
-CFLAGS += -I$(SRC_ROOT)/include/$(LIB)
-
+include ../Makefile
 include $(MAKER_ROOT)/Makefile.gcc
