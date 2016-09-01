@@ -33,6 +33,7 @@
 
 #include <msp430.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <libmsp/periph.h>
 #include <libmsp/clock.h>
