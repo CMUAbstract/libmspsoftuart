@@ -87,7 +87,7 @@ static volatile bool hasReceived = false;
 void mspsoftuart_init(void)
 {
     // default to high, for when we turn on the output pin (by setting SEL register)
-    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = TAOUT;
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = OUT;
 
     GPIO(PORT_SOFTUART_TXD, SEL_REG) |= BIT(PIN_SOFTUART_TXD);
     GPIO(PORT_SOFTUART_TXD, DIR) |= BIT(PIN_SOFTUART_TXD);
@@ -120,7 +120,7 @@ int io_putchar(int ch)
 
     P1OUT |= BIT2;
 
-    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = TAOUT; // TXD Idle as Mark
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = OUT; // TXD Idle as Mark
     TIMER(TIMER_SOFTUART, CTL) = TASSEL_2 + MC_2; // SMCLK, continuous mode
 
     bitCount = 0xA; 						// Load Bit counter, 8 bits + ST/SP
@@ -136,7 +136,7 @@ int io_putchar(int ch)
     TXByte = TXByte << 1; 					// Add start bit (which is logical 0)
 
     // Set signal, intial value, enable interrupts
-    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = CCIS_0 + OUTMOD_0 + CCIE + TAOUT; 
+    TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = CCIS_0 + OUTMOD_0 + CCIE + OUT;
 
     // Wait for previous TX completion
     while ( TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) & CCIE );
