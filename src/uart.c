@@ -42,6 +42,13 @@
 #include "config.h"
 #include "printf.h"
 
+/* GPIO function select register differs among chips */
+#ifdef __MSP430FR5949__ // P*SEL0,P*SEL1 define a 2-bit value
+#define SEL_REG SEL0 // we use only one of the bits
+#else
+#define SEL_REG SEL
+#endif
+
 /**
  * Bit time
  */
@@ -82,7 +89,7 @@ void mspsoftuart_init(void)
     // default to high, for when we turn on the output pin (by setting SEL register)
     TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = TAOUT;
 
-    GPIO(PORT_SOFTUART_TXD, SEL) |= BIT(PIN_SOFTUART_TXD);
+    GPIO(PORT_SOFTUART_TXD, SEL_REG) |= BIT(PIN_SOFTUART_TXD);
     GPIO(PORT_SOFTUART_TXD, DIR) |= BIT(PIN_SOFTUART_TXD);
 
 #ifdef CONFIG_RX
