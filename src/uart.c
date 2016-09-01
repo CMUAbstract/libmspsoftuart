@@ -36,7 +36,6 @@
 #include <stdint.h>
 
 #include <libmsp/periph.h>
-#include <libmsp/clock.h>
 
 #include "pins.h"
 #include "config.h"

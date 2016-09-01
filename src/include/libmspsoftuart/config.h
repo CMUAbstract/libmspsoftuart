@@ -15,4 +15,8 @@
 
 #define CONFIG_SOFTUART_BAUDRATE 		115200
 
+/* NOTE: must match the configuration in main app
+ * TODO: figure out a way to have this defined in one place */
+#define CONFIG_SMCLK_FREQ 8000000
+
 #endif // LIBMSPSOFTUART_H
