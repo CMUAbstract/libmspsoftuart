@@ -124,8 +124,6 @@ int io_putchar(int ch)
 
     while(isReceiving); 					// Wait for RX completion
 
-    P1OUT |= BIT2;
-
     TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) = OUT; // TXD Idle as Mark
     // continuous mode
     TIMER(TIMER_SOFTUART, CTL) = TIMER_CLK_SOURCE_BITS(TIMER_SOFTUART_TYPE, SMCLK) + MC_2;
