@@ -37,9 +37,16 @@
 
 #include <libmsp/periph.h>
 
-#include "pins.h"
-#include "config.h"
 #include "printf.h"
+
+#define CONFIG_RX (defined(PORT_SOFTUART_RXD) && defined(PIN_SOFTUART_RXD))
+#define CONFIG_TX (defined(PORT_SOFTUART_TXD) && defined(PIN_SOFTUART_TXD))
+
+#if !CONFIG_TX
+#error RX-only configuration not supported
+#endif // !CONFIG_TX
+
+#define TIMER_SOFTUART CONCAT(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX)
 
 /* GPIO function select register differs among chips */
 #ifdef __MSP430FR5949__ // P*SEL0,P*SEL1 define a 2-bit value
@@ -51,7 +58,7 @@
 /**
  * Bit time
  */
-#define BIT_TIME        (CONFIG_SMCLK_FREQ / CONFIG_SOFTUART_BAUDRATE)
+#define BIT_TIME        (CONFIG_SOFTUART_CLOCK_FREQ / CONFIG_SOFTUART_BAUDRATE)
 
 /**
  * Half bit time
@@ -91,7 +98,7 @@ void mspsoftuart_init(void)
     GPIO(PORT_SOFTUART_TXD, SEL_REG) |= BIT(PIN_SOFTUART_TXD);
     GPIO(PORT_SOFTUART_TXD, DIR) |= BIT(PIN_SOFTUART_TXD);
 
-#ifdef CONFIG_RX
+#if CONFIG_RX
     GPIO(PORT_SOFTUART_RXD, IES) |= BIT(PIN_SOFTUART_RXD); // RXD Hi/lo edge interrupt
     GPIO(PORT_SOFTUART_RXD, IFG) &= ~BIT(PIN_SOFTUART_RXD); // Clear flag before enabling interrupt
     GPIO(PORT_SOFTUART_RXD, IE) |= BIT(PIN_SOFTUART_RXD); // Enable RXD interrupt
@@ -157,7 +164,7 @@ int io_puts_no_newline(const char *str)
     return 0;
 }
 
-#ifdef CONFIG_RX
+#if CONFIG_RX
 /**
  * ISR for RXD
  */
@@ -223,7 +230,7 @@ void softuart_timer_isr(void)
             bitCount --;
         }
     } else {
-#ifdef CONFIG_RX
+#if CONFIG_RX
         TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
 
         if ( bitCount == 0) {
