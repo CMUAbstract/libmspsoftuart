@@ -206,7 +206,7 @@ void softuart_timer_isr(void)
 #endif // !CONFIG_ISR_TIMER
 {
     // This is crucial: reading IV register clears the interrupt flag
-    if (!(TIMER_INTVEC(TIMER_SOFTUART_TYPE) &
+    if (!(TIMER_INTVEC(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX) &
             TIMER_INTFLAG(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC)))
         return;
 
