@@ -205,10 +205,12 @@ void TIMER_ISR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC)(void)
 void softuart_timer_isr(void)
 #endif // !CONFIG_ISR_TIMER
 {
+#if TIMER_SOFTUART_CC > 0 // CC0 has a dedicate IV that is auto-cleared upon servicing
     // This is crucial: reading IV register clears the interrupt flag
     if (!(TIMER_INTVEC(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX) &
             TIMER_INTFLAG(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC)))
         return;
+#endif // TIMER_SOFTUART_CC > 0
 
     if(!isReceiving) {
         TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCR) += BIT_TIME; // Add Offset to CCR0
