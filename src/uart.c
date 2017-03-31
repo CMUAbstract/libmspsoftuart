@@ -49,7 +49,7 @@
 #define TIMER_SOFTUART CONCAT(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX)
 
 /* GPIO function select register differs among chips */
-#ifdef __MSP430FR5949__ // P*SEL0,P*SEL1 define a 2-bit value
+#if defined(__MSP430FR5949__) || defined(__MSP430FR6989) // P*SEL0,P*SEL1 define a 2-bit value
 #define SEL_REG SEL0 // we use only one of the bits
 #else
 #define SEL_REG SEL
