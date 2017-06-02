@@ -105,21 +105,21 @@ void mspsoftuart_init(void)
 #endif
 }
 
-int io_getchar(void)
+#if CONFIG_RX
+uint8_t mspsoftuart_receive_byte_sync(void)
 {
-    int ch;
+    uint8_t b;
     while (!hasReceived);
 
-    ch = RXByte;
+    b = RXByte;
     hasReceived = false;
 
-    return ch;
+    return b;
 }
+#endif // CONFIG_RX
 
-int io_putchar(int ch)
+void mspsoftuart_send_sync(uint8_t c)
 {
-    uint8_t c = ch;
-
     TXByte = c;
 
     while(isReceiving); 					// Wait for RX completion
@@ -145,21 +145,6 @@ int io_putchar(int ch)
 
     // Wait for previous TX completion
     while ( TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) & CCIE );
-
-    return ch;
-}
-
-int io_puts(const char *str)
-{
-    while(*str != 0) io_putchar(*str++);
-    io_putchar('\n'); // semantics of puts say it appends a newline
-    return 0;
-}
-
-int io_puts_no_newline(const char *str)
-{
-    while(*str != 0) io_putchar(*str++);
-    return 0;
 }
 
 #if CONFIG_RX
