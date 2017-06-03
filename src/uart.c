@@ -37,7 +37,7 @@
 
 #include <libmsp/periph.h>
 
-#include "printf.h"
+#include "uart.h"
 
 #define CONFIG_RX (defined(PORT_SOFTUART_RXD) && defined(PIN_SOFTUART_RXD))
 #define CONFIG_TX (defined(PORT_SOFTUART_TXD) && defined(PIN_SOFTUART_TXD))
@@ -118,7 +118,7 @@ uint8_t mspsoftuart_receive_byte_sync(void)
 }
 #endif // CONFIG_RX
 
-void mspsoftuart_send_sync(uint8_t c)
+void mspsoftuart_send_byte_sync(uint8_t c)
 {
     TXByte = c;
 
