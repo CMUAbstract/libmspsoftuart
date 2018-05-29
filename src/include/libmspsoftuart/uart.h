@@ -37,10 +37,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/**
- * Initialize soft UART backend for printf
- */
 void mspsoftuart_init(void);
+char mspsoftuart_receive_byte_sync(void);
+void mspsoftuart_send_byte_sync(char ch);
 
 #endif
 

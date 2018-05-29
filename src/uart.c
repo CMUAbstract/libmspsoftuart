@@ -37,7 +37,7 @@
 
 #include <libmsp/periph.h>
 
-#include "printf.h"
+#include "uart.h"
 
 #define CONFIG_RX (defined(PORT_SOFTUART_RXD) && defined(PIN_SOFTUART_RXD))
 #define CONFIG_TX (defined(PORT_SOFTUART_TXD) && defined(PIN_SOFTUART_TXD))
@@ -48,8 +48,12 @@
 
 #define TIMER_SOFTUART CONCAT(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX)
 
-/* GPIO function select register differs among chips */
-#ifdef __MSP430FR5949__ // P*SEL0,P*SEL1 define a 2-bit value
+/* GPIO function select register differs among chips
+ * Technically, this is documented as differing per device, but probably
+ * consistent for whole family */
+#if defined(__MSP430FR5949__) || \
+    defined(__MSP430FR5994__)
+// P*SEL0,P*SEL1 define a 2-bit value
 #define SEL_REG SEL0 // we use only one of the bits
 #else
 #define SEL_REG SEL
@@ -105,9 +109,9 @@ void mspsoftuart_init(void)
 #endif
 }
 
-int io_getchar(void)
+char mspsoftuart_receive_byte_sync(void)
 {
-    int ch;
+    char ch;
     while (!hasReceived);
 
     ch = RXByte;
@@ -116,7 +120,7 @@ int io_getchar(void)
     return ch;
 }
 
-int io_putchar(int ch)
+void mspsoftuart_send_byte_sync(char ch)
 {
     uint8_t c = ch;
 
@@ -145,21 +149,6 @@ int io_putchar(int ch)
 
     // Wait for previous TX completion
     while ( TIMER_CC(TIMER_SOFTUART, TIMER_SOFTUART_CC, CCTL) & CCIE );
-
-    return ch;
-}
-
-int io_puts(const char *str)
-{
-    while(*str != 0) io_putchar(*str++);
-    io_putchar('\n'); // semantics of puts say it appends a newline
-    return 0;
-}
-
-int io_puts_no_newline(const char *str)
-{
-    while(*str != 0) io_putchar(*str++);
-    return 0;
 }
 
 #if CONFIG_RX
@@ -167,8 +156,7 @@ int io_puts_no_newline(const char *str)
  * ISR for RXD
  */
 #ifdef CONFIG_ISR_RX
-__attribute__ ((interrupt(GPIO_VECTOR(PORT_SOFTUART_RXD))))
-void GPIO_ISR(PORT_SOFTUART_RXD)(void)
+ISR(GPIO_VECTOR(PORT_SOFTUART_RXD))
 #else // !CONFIG_ISR_RX
 void softuart_rx_isr(void)
 #endif // !CONFIG_ISR_RX
@@ -199,8 +187,7 @@ void softuart_rx_isr(void)
  * ISR for TXD and RXD
  */
 #ifdef CONFIG_ISR_TIMER
-__attribute__ ((interrupt(TIMER_VECTOR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC))))
-void TIMER_ISR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC)(void)
+ISR(TIMER_VECTOR(TIMER_SOFTUART_TYPE, TIMER_SOFTUART_IDX, TIMER_SOFTUART_CC))
 #else // !CONFIG_ISR_TIMER
 void softuart_timer_isr(void)
 #endif // !CONFIG_ISR_TIMER
@@ -265,4 +252,3 @@ void softuart_timer_isr(void)
 #endif // CONFIG_RX
     }
 }
-
